@@ -43,6 +43,7 @@ services:
       - etc_munge:/etc/munge
       - etc_slurm:/etc/slurm
       - var_log_slurm:/var/log/slurm
+
     expose:
       - "6819"
     depends_on:
@@ -76,6 +77,9 @@ services:
       - opt_modulefiles:/opt/modulefiles
       - spack_root:/opt/spack
       - ${SSH_AUTHORIZED_KEYS:-/dev/null}:/tmp/authorized_keys_host:ro,z
+      # Custom path by william, can be used for mounting additional files for testing
+      - /Users/william/Github/kubegut-slurm/blogs:/opt/blogs:rw
+      - /Users/william/Github/kubegut-slurm/volumes:/opt/volumes:rw
     ports:
       - "${SSH_PORT:-3022}:22"
     expose:
@@ -135,6 +139,9 @@ services:
       - home_ood:/home/ood  # shared with OOD for job I/O
       - opt_modulefiles:/opt/modulefiles
       - spack_root:/opt/spack
+      # Custom path by william, can be used for mounting additional files for testing
+      - /Users/william/Github/kubegut-slurm/blogs:/opt/blogs:rw
+      - /Users/william/Github/kubegut-slurm/volumes:/opt/volumes:rw
     expose:
       - "6818"
     depends_on:

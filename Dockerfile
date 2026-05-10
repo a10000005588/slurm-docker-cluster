@@ -85,6 +85,8 @@ RUN set -ex \
        wget \
        libjwt \
        libjwt-devel \
+    # [William] Support srun with OpenMPI
+    && dnf -y install openmpi openmpi-devel libevent-devel pmix pmix-devel \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
@@ -116,7 +118,8 @@ RUN set -ex \
     && wget -O /root/rpmbuild/SOURCES/slurm-${SLURM_VERSION}.tar.bz2 \
        https://download.schedmd.com/slurm/slurm-${SLURM_VERSION}.tar.bz2 \
     && cd /root/rpmbuild/SOURCES \
-    && rpmbuild -ta slurm-${SLURM_VERSION}.tar.bz2 \
+    # [William] Build with PMIx support for OpenMPI
+    && rpmbuild -ta slurm-${SLURM_VERSION}.tar.bz2 --with pmix \
     && ls -lh /root/rpmbuild/RPMS/${RPM_ARCH}/
 
 # ============================================================================
@@ -349,6 +352,24 @@ COPY --chown=slurm:slurm --chmod=0600 examples /root/examples
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+
+# ============================================================================
+# Stage 3: MPI toolchain: mpicc (OpenMPI) 
+# ============================================================================
+RUN set -ex \
+    && dnf -y install openmpi openmpi-devel libevent-devel pmix pmix-devel \
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
+
+# Make OpenMPI available by default (no module needed)
+ENV PATH="/usr/lib64/openmpi/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/usr/lib64/openmpi/lib:${LD_LIBRARY_PATH}"
+
+# Sanity check
+RUN set -ex \
+    && which mpicc \
+    && mpicc --version
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
